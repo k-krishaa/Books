@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Category
+from models import db, User, Product, Category
 from config import Config
 
 app = Flask(__name__)
@@ -20,6 +20,27 @@ def load_user(user_id):
 def home():
     categories = Category.query.all()
     return render_template('home.html', categories=categories)
+
+# Products routes
+@app.route('/products')
+def products():
+    category_id = request.args.get('category', type=int)
+    search = request.args.get('search', '')
+    
+    query = Product.query
+    if category_id:
+        query = query.filter_by(category_id=category_id)
+    if search:
+        query = query.filter(Product.title.contains(search) | Product.author.contains(search))
+    
+    products = query.all()
+    categories = Category.query.all()
+    return render_template('products.html', products=products, categories=categories)
+
+@app.route('/product/<int:id>')
+def product_detail(id):
+    product = Product.query.get_or_404(id)
+    return render_template('product_detail.html', product=product)
 
 # Authentication routes
 @app.route('/register', methods=['GET', 'POST'])
@@ -77,6 +98,31 @@ def init_db():
             for cat_name in categories:
                 category = Category(name=cat_name)
                 db.session.add(category)
+        
+        # Create sample products if not exist
+        if Product.query.count() == 0:
+            products = [
+                Product(title='The Great Gatsby', author='F. Scott Fitzgerald', 
+                        description='A classic American novel set in the Jazz Age', price=12.99, stock=50, 
+                        category_id=1, image_url='https://covers.openlibrary.org/b/id/7222246-L.jpg'),
+                Product(title='To Kill a Mockingbird', author='Harper Lee', 
+                        description='A gripping tale of racial injustice and childhood innocence', price=14.99, stock=40, 
+                        category_id=1, image_url='https://covers.openlibrary.org/b/id/8228691-L.jpg'),
+                Product(title='1984', author='George Orwell', 
+                        description='A dystopian social science fiction novel', price=13.99, stock=60, 
+                        category_id=1, image_url='https://covers.openlibrary.org/b/id/7222246-L.jpg'),
+                Product(title='Sapiens', author='Yuval Noah Harari', 
+                        description='A brief history of humankind', price=18.99, stock=30, 
+                        category_id=2, image_url='https://covers.openlibrary.org/b/id/8235826-L.jpg'),
+                Product(title='Educated', author='Tara Westover', 
+                        description='A memoir about a young woman who leaves her survivalist family', price=16.99, stock=25, 
+                        category_id=5, image_url='https://covers.openlibrary.org/b/id/8739185-L.jpg'),
+                Product(title='A Brief History of Time', author='Stephen Hawking', 
+                        description='From the Big Bang to Black Holes', price=15.99, stock=35, 
+                        category_id=3, image_url='https://covers.openlibrary.org/b/id/7884607-L.jpg'),
+            ]
+            for product in products:
+                db.session.add(product)
         
         db.session.commit()
 
