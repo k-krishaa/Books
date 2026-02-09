@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Products - Bookstore{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">All Books</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="GET" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" placeholder="Search books..." value="{{ request.args.get('search', '') }}">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <select class="form-select" onchange="location.href='?category='+this.value">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if request.args.get('category')|int == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <img src="{{ product.image_url or 'https://via.placeholder.com/300x400?text=Book+Cover' }}" class="card-img-top" alt="{{ product.title }}">
+                <div class="card-body">
+                    <h6 class="card-title">{{ product.title }}</h6>
+                    <p class="card-text text-muted small">{{ product.author }}</p>
+                    <p class="card-text"><strong>${{ "%.2f"|format(product.price) }}</strong></p>
+                    <a href="{{ url_for('product_detail', id=product.id) }}" class="btn btn-sm btn-primary w-100">View</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <p class="text-center">No products found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
