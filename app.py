@@ -87,6 +87,14 @@ def logout():
     flash('Logged out successfully', 'success')
     return redirect(url_for('home'))
 
+# Contact route
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        flash('Thank you for contacting us! We will get back to you soon.', 'success')
+        return redirect(url_for('contact'))
+    return render_template('contact.html')
+
 # Initialize database
 def init_db():
     with app.app_context():
