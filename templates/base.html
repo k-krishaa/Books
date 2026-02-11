@@ -30,6 +30,14 @@
                     </li>
                 </ul>
                 <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if current_user.is_authenticated %}{{ url_for('cart') }}{% else %}{{ url_for('login') }}{% endif %}">
+                            <i class="bi bi-cart"></i> Cart
+                            {% if cart_count > 0 %}
+                            <span class="badge bg-danger">{{ cart_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('logout') }}">Logout ({{ current_user.username }})</a>

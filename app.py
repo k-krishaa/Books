@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Product, Category
+from models import db, User, Product, Category, CartItem
 from config import Config
 
 app = Flask(__name__)
@@ -94,6 +94,63 @@ def contact():
         flash('Thank you for contacting us! We will get back to you soon.', 'success')
         return redirect(url_for('contact'))
     return render_template('contact.html')
+
+# Cart routes
+@app.route('/cart')
+@login_required
+def cart():
+    cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+    total = sum(item.product.price * item.quantity for item in cart_items)
+    return render_template('cart.html', cart_items=cart_items, total=total)
+
+@app.route('/add_to_cart/<int:product_id>', methods=['POST'])
+@login_required
+def add_to_cart(product_id):
+    product = Product.query.get_or_404(product_id)
+    quantity = int(request.form.get('quantity', 1))
+    
+    cart_item = CartItem.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+    
+    if cart_item:
+        cart_item.quantity += quantity
+    else:
+        cart_item = CartItem(user_id=current_user.id, product_id=product_id, quantity=quantity)
+        db.session.add(cart_item)
+    
+    db.session.commit()
+    flash('Product added to cart!', 'success')
+    return redirect(url_for('products'))
+
+@app.route('/update_cart/<int:item_id>', methods=['POST'])
+@login_required
+def update_cart(item_id):
+    cart_item = CartItem.query.get_or_404(item_id)
+    quantity = int(request.form['quantity'])
+    
+    if quantity > 0:
+        cart_item.quantity = quantity
+    else:
+        db.session.delete(cart_item)
+    
+    db.session.commit()
+    return redirect(url_for('cart'))
+
+@app.route('/remove_from_cart/<int:item_id>')
+@login_required
+def remove_from_cart(item_id):
+    cart_item = CartItem.query.get_or_404(item_id)
+    db.session.delete(cart_item)
+    db.session.commit()
+    flash('Item removed from cart', 'success')
+    return redirect(url_for('cart'))
+
+# Context processor for cart count
+@app.context_processor
+def cart_count():
+    if current_user.is_authenticated:
+        count = CartItem.query.filter_by(user_id=current_user.id).count()
+        return {'cart_count': count}
+    return {'cart_count': 0}
 
 # Initialize database
 def init_db():
