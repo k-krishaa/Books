@@ -25,3 +25,18 @@ main {
     height: 300px;
     object-fit: cover;
 }
+
+.category-card {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+footer a:hover {
+    color: #fff !important;
+    transition: color 0.3s;
+}

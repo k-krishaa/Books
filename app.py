@@ -102,6 +102,7 @@ def init_db():
         # Create sample products if not exist
         if Product.query.count() == 0:
             products = [
+                # Fiction
                 Product(title='The Great Gatsby', author='F. Scott Fitzgerald', 
                         description='A classic American novel set in the Jazz Age', price=12.99, stock=50, 
                         category_id=1, image_url='https://covers.openlibrary.org/b/id/7222246-L.jpg'),
@@ -111,15 +112,56 @@ def init_db():
                 Product(title='1984', author='George Orwell', 
                         description='A dystopian social science fiction novel', price=13.99, stock=60, 
                         category_id=1, image_url='https://covers.openlibrary.org/b/id/7222246-L.jpg'),
+                Product(title='Pride and Prejudice', author='Jane Austen', 
+                        description='A romantic novel of manners', price=11.99, stock=45, 
+                        category_id=1, image_url='https://covers.openlibrary.org/b/id/8235886-L.jpg'),
+                # Non-Fiction
                 Product(title='Sapiens', author='Yuval Noah Harari', 
                         description='A brief history of humankind', price=18.99, stock=30, 
                         category_id=2, image_url='https://covers.openlibrary.org/b/id/8235826-L.jpg'),
-                Product(title='Educated', author='Tara Westover', 
-                        description='A memoir about a young woman who leaves her survivalist family', price=16.99, stock=25, 
-                        category_id=5, image_url='https://covers.openlibrary.org/b/id/8739185-L.jpg'),
+                Product(title='Atomic Habits', author='James Clear', 
+                        description='An easy and proven way to build good habits', price=16.99, stock=55, 
+                        category_id=2, image_url='https://covers.openlibrary.org/b/id/10958382-L.jpg'),
+                Product(title='Thinking, Fast and Slow', author='Daniel Kahneman', 
+                        description='Explores the two systems that drive the way we think', price=17.99, stock=35, 
+                        category_id=2, image_url='https://covers.openlibrary.org/b/id/7897651-L.jpg'),
+                # Science
                 Product(title='A Brief History of Time', author='Stephen Hawking', 
                         description='From the Big Bang to Black Holes', price=15.99, stock=35, 
                         category_id=3, image_url='https://covers.openlibrary.org/b/id/7884607-L.jpg'),
+                Product(title='Cosmos', author='Carl Sagan', 
+                        description='A journey through space and time', price=14.99, stock=40, 
+                        category_id=3, image_url='https://covers.openlibrary.org/b/id/6979861-L.jpg'),
+                Product(title='The Selfish Gene', author='Richard Dawkins', 
+                        description='A gene-centered view of evolution', price=13.99, stock=30, 
+                        category_id=3, image_url='https://covers.openlibrary.org/b/id/8235890-L.jpg'),
+                # History
+                Product(title='The Diary of a Young Girl', author='Anne Frank', 
+                        description='The writings from the Dutch language diary', price=12.99, stock=50, 
+                        category_id=4, image_url='https://covers.openlibrary.org/b/id/8235891-L.jpg'),
+                Product(title='Guns, Germs, and Steel', author='Jared Diamond', 
+                        description='The fates of human societies', price=16.99, stock=25, 
+                        category_id=4, image_url='https://covers.openlibrary.org/b/id/8235892-L.jpg'),
+                # Biography
+                Product(title='Educated', author='Tara Westover', 
+                        description='A memoir about a young woman who leaves her survivalist family', price=16.99, stock=25, 
+                        category_id=5, image_url='https://covers.openlibrary.org/b/id/8739185-L.jpg'),
+                Product(title='Steve Jobs', author='Walter Isaacson', 
+                        description='The exclusive biography', price=19.99, stock=30, 
+                        category_id=5, image_url='https://covers.openlibrary.org/b/id/8235893-L.jpg'),
+                Product(title='Becoming', author='Michelle Obama', 
+                        description='Memoir by the former First Lady', price=18.99, stock=40, 
+                        category_id=5, image_url='https://covers.openlibrary.org/b/id/8739186-L.jpg'),
+                # Children
+                Product(title='Harry Potter and the Sorcerer\'s Stone', author='J.K. Rowling', 
+                        description='The first book in the Harry Potter series', price=14.99, stock=60, 
+                        category_id=6, image_url='https://covers.openlibrary.org/b/id/10521270-L.jpg'),
+                Product(title='The Cat in the Hat', author='Dr. Seuss', 
+                        description='A classic children\'s book', price=9.99, stock=70, 
+                        category_id=6, image_url='https://covers.openlibrary.org/b/id/8235894-L.jpg'),
+                Product(title='Charlotte\'s Web', author='E.B. White', 
+                        description='A story of friendship and loyalty', price=11.99, stock=55, 
+                        category_id=6, image_url='https://covers.openlibrary.org/b/id/8235895-L.jpg'),
             ]
             for product in products:
                 db.session.add(product)
