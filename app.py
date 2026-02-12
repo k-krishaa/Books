@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Product, Category, CartItem
+from models import db, User, Product, Category, CartItem, Wishlist
 from config import Config
 
 app = Flask(__name__)
@@ -149,8 +149,40 @@ def remove_from_cart(item_id):
 def cart_count():
     if current_user.is_authenticated:
         count = CartItem.query.filter_by(user_id=current_user.id).count()
-        return {'cart_count': count}
-    return {'cart_count': 0}
+        wishlist_count = Wishlist.query.filter_by(user_id=current_user.id).count()
+        return {'cart_count': count, 'wishlist_count': wishlist_count}
+    return {'cart_count': 0, 'wishlist_count': 0}
+
+# Wishlist routes
+@app.route('/wishlist')
+@login_required
+def wishlist():
+    wishlist_items = Wishlist.query.filter_by(user_id=current_user.id).all()
+    return render_template('wishlist.html', wishlist_items=wishlist_items)
+
+@app.route('/add_to_wishlist/<int:product_id>')
+@login_required
+def add_to_wishlist(product_id):
+    existing = Wishlist.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+    
+    if not existing:
+        wishlist_item = Wishlist(user_id=current_user.id, product_id=product_id)
+        db.session.add(wishlist_item)
+        db.session.commit()
+        flash('Added to wishlist!', 'success')
+    else:
+        flash('Already in wishlist!', 'info')
+    
+    return redirect(request.referrer or url_for('products'))
+
+@app.route('/remove_from_wishlist/<int:item_id>')
+@login_required
+def remove_from_wishlist(item_id):
+    wishlist_item = Wishlist.query.get_or_404(item_id)
+    db.session.delete(wishlist_item)
+    db.session.commit()
+    flash('Removed from wishlist', 'success')
+    return redirect(url_for('wishlist'))
 
 # Initialize database
 def init_db():
