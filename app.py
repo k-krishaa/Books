@@ -222,6 +222,99 @@ def order_confirmation(order_id):
     order = Order.query.get_or_404(order_id)
     return render_template('order_confirmation.html', order=order)
 
+# Admin routes
+@app.route('/admin')
+@login_required
+def admin_dashboard():
+    if not current_user.is_admin:
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('home'))
+    
+    total_products = Product.query.count()
+    total_orders = Order.query.count()
+    total_users = User.query.count()
+    total_revenue = db.session.query(db.func.sum(Order.total)).scalar() or 0
+    recent_orders = Order.query.order_by(Order.created_at.desc()).limit(5).all()
+    
+    return render_template('admin/dashboard.html', 
+                         total_products=total_products,
+                         total_orders=total_orders, 
+                         total_users=total_users,
+                         total_revenue=total_revenue,
+                         recent_orders=recent_orders)
+
+@app.route('/admin/products')
+@login_required
+def admin_products():
+    if not current_user.is_admin:
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('home'))
+    
+    products = Product.query.all()
+    return render_template('admin/products.html', products=products)
+
+@app.route('/admin/product/add', methods=['GET', 'POST'])
+@login_required
+def admin_add_product():
+    if not current_user.is_admin:
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('home'))
+    
+    if request.method == 'POST':
+        product = Product(
+            title=request.form['title'],
+            author=request.form['author'],
+            description=request.form['description'],
+            price=float(request.form['price']),
+            stock=int(request.form['stock']),
+            category_id=int(request.form['category_id']),
+            image_url=request.form['image_url']
+        )
+        db.session.add(product)
+        db.session.commit()
+        flash('Product added successfully!', 'success')
+        return redirect(url_for('admin_products'))
+    
+    categories = Category.query.all()
+    return render_template('admin/add_product.html', categories=categories)
+
+@app.route('/admin/product/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def admin_edit_product(id):
+    if not current_user.is_admin:
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('home'))
+    
+    product = Product.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        product.title = request.form['title']
+        product.author = request.form['author']
+        product.description = request.form['description']
+        product.price = float(request.form['price'])
+        product.stock = int(request.form['stock'])
+        product.category_id = int(request.form['category_id'])
+        product.image_url = request.form['image_url']
+        db.session.commit()
+        flash('Product updated successfully!', 'success')
+        return redirect(url_for('admin_products'))
+    
+    categories = Category.query.all()
+    return render_template('admin/edit_product.html', product=product, categories=categories)
+
+@app.route('/admin/product/delete/<int:id>')
+@login_required
+def admin_delete_product(id):
+    if not current_user.is_admin:
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('home'))
+    
+    product = Product.query.get_or_404(id)
+    db.session.delete(product)
+    db.session.commit()
+    flash('Product deleted successfully!', 'success')
+    return redirect(url_for('admin_products'))
+
 # Initialize database
 def init_db():
     with app.app_context():
@@ -233,6 +326,12 @@ def init_db():
             for cat_name in categories:
                 category = Category(name=cat_name)
                 db.session.add(category)
+        
+        # Create admin user if not exists
+        if not User.query.filter_by(username='admin').first():
+            admin = User(username='admin', email='admin@bookstore.com', is_admin=True)
+            admin.set_password('admin123')
+            db.session.add(admin)
         
         # Create sample products if not exist
         if Product.query.count() == 0:
