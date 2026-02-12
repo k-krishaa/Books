@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Product, Category, CartItem, Wishlist
+from models import db, User, Product, Category, CartItem, Wishlist, Order, OrderItem
 from config import Config
 
 app = Flask(__name__)
@@ -183,6 +183,44 @@ def remove_from_wishlist(item_id):
     db.session.commit()
     flash('Removed from wishlist', 'success')
     return redirect(url_for('wishlist'))
+
+# Checkout routes
+@app.route('/checkout', methods=['GET', 'POST'])
+@login_required
+def checkout():
+    cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+    
+    if not cart_items:
+        flash('Your cart is empty', 'warning')
+        return redirect(url_for('products'))
+    
+    if request.method == 'POST':
+        total = sum(item.product.price * item.quantity for item in cart_items)
+        order = Order(user_id=current_user.id, total=total, status='completed')
+        db.session.add(order)
+        
+        for item in cart_items:
+            order_item = OrderItem(order=order, product_id=item.product_id, 
+                                   quantity=item.quantity, price=item.product.price)
+            db.session.add(order_item)
+            
+            product = Product.query.get(item.product_id)
+            product.stock -= item.quantity
+        
+        CartItem.query.filter_by(user_id=current_user.id).delete()
+        db.session.commit()
+        
+        flash('Order placed successfully!', 'success')
+        return redirect(url_for('order_confirmation', order_id=order.id))
+    
+    total = sum(item.product.price * item.quantity for item in cart_items)
+    return render_template('checkout.html', cart_items=cart_items, total=total)
+
+@app.route('/order_confirmation/<int:order_id>')
+@login_required
+def order_confirmation(order_id):
+    order = Order.query.get_or_404(order_id)
+    return render_template('order_confirmation.html', order=order)
 
 # Initialize database
 def init_db():
