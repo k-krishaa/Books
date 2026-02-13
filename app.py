@@ -26,12 +26,23 @@ def home():
 def products():
     category_id = request.args.get('category', type=int)
     search = request.args.get('search', '')
+    sort = request.args.get('sort', 'name_asc')
     
     query = Product.query
     if category_id:
         query = query.filter_by(category_id=category_id)
     if search:
         query = query.filter(Product.title.contains(search) | Product.author.contains(search))
+    
+    # Sorting
+    if sort == 'price_asc':
+        query = query.order_by(Product.price.asc())
+    elif sort == 'price_desc':
+        query = query.order_by(Product.price.desc())
+    elif sort == 'name_desc':
+        query = query.order_by(Product.title.desc())
+    else:  # name_asc
+        query = query.order_by(Product.title.asc())
     
     products = query.all()
     categories = Category.query.all()
@@ -314,6 +325,13 @@ def admin_delete_product(id):
     db.session.commit()
     flash('Product deleted successfully!', 'success')
     return redirect(url_for('admin_products'))
+
+# User order history
+@app.route('/my-orders')
+@login_required
+def my_orders():
+    orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
+    return render_template('my_orders.html', orders=orders)
 
 # Initialize database
 def init_db():

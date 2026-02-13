@@ -7,14 +7,14 @@
     <h2 class="mb-4">All Books</h2>
     
     <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <form method="GET" class="d-flex">
                 <input type="text" name="search" class="form-control me-2" placeholder="Search books..." value="{{ request.args.get('search', '') }}">
                 <button type="submit" class="btn btn-primary">Search</button>
             </form>
         </div>
-        <div class="col-md-6">
-            <select class="form-select" onchange="location.href='?category='+this.value">
+        <div class="col-md-4">
+            <select class="form-select" onchange="location.href='?category='+this.value+'&search={{ request.args.get('search', '') }}&sort={{ request.args.get('sort', 'name_asc') }}'">
                 <option value="">All Categories</option>
                 {% for category in categories %}
                 <option value="{{ category.id }}" {% if request.args.get('category')|int == category.id %}selected{% endif %}>
@@ -23,12 +23,29 @@
                 {% endfor %}
             </select>
         </div>
+        <div class="col-md-4">
+            <select class="form-select" onchange="location.href='?sort='+this.value+'&category={{ request.args.get('category', '') }}&search={{ request.args.get('search', '') }}'">
+                <option value="name_asc" {% if request.args.get('sort') == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                <option value="name_desc" {% if request.args.get('sort') == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                <option value="price_asc" {% if request.args.get('sort') == 'price_asc' %}selected{% endif %}>Price (Low to High)</option>
+                <option value="price_desc" {% if request.args.get('sort') == 'price_desc' %}selected{% endif %}>Price (High to Low)</option>
+            </select>
+        </div>
     </div>
 
     <div class="row">
         {% for product in products %}
         <div class="col-md-3 mb-4">
             <div class="card h-100">
+                {% if product.stock == 0 %}
+                <div class="position-absolute top-0 end-0 m-2">
+                    <span class="badge bg-danger">Out of Stock</span>
+                </div>
+                {% elif product.stock < 10 %}
+                <div class="position-absolute top-0 end-0 m-2">
+                    <span class="badge bg-warning text-dark">Low Stock</span>
+                </div>
+                {% endif %}
                 <img src="{{ product.image_url or 'https://via.placeholder.com/300x400?text=Book+Cover' }}" class="card-img-top" alt="{{ product.title }}">
                 <div class="card-body d-flex flex-column">
                     <h6 class="card-title">{{ product.title }}</h6>
@@ -36,17 +53,23 @@
                     <p class="card-text"><strong>${{ "%.2f"|format(product.price) }}</strong></p>
                     <div class="mt-auto">
                         <a href="{{ url_for('product_detail', id=product.id) }}" class="btn btn-sm btn-outline-primary w-100 mb-2">View Details</a>
-                        {% if current_user.is_authenticated %}
-                        <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
-                            <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="btn btn-sm btn-primary w-100">
+                        {% if product.stock > 0 %}
+                            {% if current_user.is_authenticated %}
+                            <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-sm btn-primary w-100">
+                                    <i class="bi bi-cart-plus"></i> Add to Cart
+                                </button>
+                            </form>
+                            {% else %}
+                            <a href="{{ url_for('login') }}" class="btn btn-sm btn-primary w-100">
                                 <i class="bi bi-cart-plus"></i> Add to Cart
-                            </button>
-                        </form>
+                            </a>
+                            {% endif %}
                         {% else %}
-                        <a href="{{ url_for('login') }}" class="btn btn-sm btn-primary w-100">
-                            <i class="bi bi-cart-plus"></i> Add to Cart
-                        </a>
+                        <button class="btn btn-sm btn-secondary w-100" disabled>
+                            <i class="bi bi-x-circle"></i> Out of Stock
+                        </button>
                         {% endif %}
                     </div>
                 </div>
