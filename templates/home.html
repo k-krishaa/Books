@@ -3,13 +3,70 @@
 {% block content %}
 <div class="hero bg-primary text-white py-5">
     <div class="container text-center">
-        <h1 class="display-4">Welcome to Our Bookstore</h1>
-        <p class="lead">Discover your next favorite book</p>
+        <h1 class="display-3 mb-3">Welcome to Our Bookstore</h1>
+        <p class="lead fs-4">Discover your next favorite book from our curated collection</p>
+        <a href="{{ url_for('products') }}" class="btn btn-light btn-lg mt-3 px-5 py-3">
+            <i class="bi bi-book"></i> Browse Books
+        </a>
     </div>
 </div>
 
-<div class="container my-5">
-    <h2 class="text-center mb-4">Browse by Category</h2>
+<!-- Best Sellers Section -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-warning text-dark px-4 py-2 mb-3" style="font-size: 0.9rem;">
+                <i class="bi bi-trophy-fill"></i> TRENDING NOW
+            </span>
+            <h2 class="display-5 fw-bold mb-2">Best Sellers</h2>
+            <p class="text-muted fs-5">Discover the most loved books by our community</p>
+        </div>
+        <div class="row g-4">
+            {% for product, order_count in best_sellers %}
+            <div class="col-md-3">
+                <div class="card h-100 bestseller-card border-0">
+                    <div class="position-relative overflow-hidden">
+                        <div class="position-absolute top-0 start-0 m-3" style="z-index: 10;">
+                            <span class="badge bg-gradient" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); font-size: 0.75rem;">
+                                <i class="bi bi-star-fill"></i> #{{ loop.index }} Bestseller
+                            </span>
+                        </div>
+                        <img src="{{ product.image_url or 'https://via.placeholder.com/300x400?text=Book+Cover' }}" class="card-img-top" alt="{{ product.title }}" style="height: 350px; object-fit: cover;">
+                        <div class="bestseller-overlay"></div>
+                    </div>
+                    <div class="card-body d-flex flex-column p-4">
+                        <h5 class="card-title fw-bold mb-2">{{ product.title }}</h5>
+                        <p class="card-text text-muted small mb-2"><i class="bi bi-person"></i> {{ product.author }}</p>
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="text-warning me-1">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                            </span>
+                            <small class="text-muted">(4.5)</small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <h4 class="text-primary mb-0 fw-bold">${{ "%.2f"|format(product.price) }}</h4>
+                            <a href="{{ url_for('product_detail', id=product.id) }}" class="btn btn-primary btn-sm px-3">
+                                View <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Categories Section -->
+<div class="container my-5 py-4">
+    <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold mb-2">Browse by Category</h2>
+        <p class="text-muted fs-5">Find your perfect book in our diverse collection</p>
+    </div>
     <div class="row">
         {% for category in categories %}
         <div class="col-md-4 mb-3">

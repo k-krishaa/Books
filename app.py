@@ -19,7 +19,18 @@ def load_user(user_id):
 @app.route('/')
 def home():
     categories = Category.query.all()
-    return render_template('home.html', categories=categories)
+    # Get best sellers (products with most orders)
+    best_sellers = db.session.query(Product, db.func.count(OrderItem.id).label('order_count'))\
+        .join(OrderItem, Product.id == OrderItem.product_id)\
+        .group_by(Product.id)\
+        .order_by(db.desc('order_count'))\
+        .limit(8).all()
+    
+    # If no orders yet, show random products
+    if not best_sellers:
+        best_sellers = [(p, 0) for p in Product.query.limit(8).all()]
+    
+    return render_template('home.html', categories=categories, best_sellers=best_sellers)
 
 # Products routes
 @app.route('/products')
@@ -355,9 +366,9 @@ def init_db():
         if Product.query.count() == 0:
             products = [
                 # Fiction
-                Product(title='The Great Gatsby', author='F. Scott Fitzgerald', 
-                        description='A classic American novel set in the Jazz Age', price=12.99, stock=50, 
-                        category_id=1, image_url='https://covers.openlibrary.org/b/id/7222246-L.jpg'),
+                Product(title='The Hobbit', author='J.R.R. Tolkien', 
+                        description='A fantasy adventure novel and prequel to The Lord of the Rings', price=13.99, stock=50, 
+                        category_id=1, image_url='https://covers.openlibrary.org/b/id/8566956-L.jpg'),
                 Product(title='To Kill a Mockingbird', author='Harper Lee', 
                         description='A gripping tale of racial injustice and childhood innocence', price=14.99, stock=40, 
                         category_id=1, image_url='https://covers.openlibrary.org/b/id/8228691-L.jpg'),
@@ -386,7 +397,7 @@ def init_db():
                         category_id=3, image_url='https://covers.openlibrary.org/b/id/6979861-L.jpg'),
                 Product(title='The Selfish Gene', author='Richard Dawkins', 
                         description='A gene-centered view of evolution', price=13.99, stock=30, 
-                        category_id=3, image_url='https://covers.openlibrary.org/b/id/8235890-L.jpg'),
+                        category_id=3, image_url='https://covers.openlibrary.org/b/id/8091016-L.jpg'),
                 # History
                 Product(title='The Diary of a Young Girl', author='Anne Frank', 
                         description='The writings from the Dutch language diary', price=12.99, stock=50, 
