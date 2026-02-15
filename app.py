@@ -19,15 +19,14 @@ def load_user(user_id):
 @app.route('/')
 def home():
     categories = Category.query.all()
-    # Get best sellers (products with most orders)
-    best_sellers = db.session.query(Product, db.func.count(OrderItem.id).label('order_count'))\
-        .join(OrderItem, Product.id == OrderItem.product_id)\
-        .group_by(Product.id)\
-        .order_by(db.desc('order_count'))\
-        .limit(8).all()
-    
-    # If no orders yet, show random products
-    if not best_sellers:
+    # Get best sellers (products with most orders) or just show first 8 products
+    try:
+        best_sellers = db.session.query(Product, db.func.count(OrderItem.id).label('order_count'))\
+            .outerjoin(OrderItem, Product.id == OrderItem.product_id)\
+            .group_by(Product.id)\
+            .order_by(db.desc('order_count'))\
+            .limit(8).all()
+    except:
         best_sellers = [(p, 0) for p in Product.query.limit(8).all()]
     
     return render_template('home.html', categories=categories, best_sellers=best_sellers)
